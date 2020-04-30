@@ -35,25 +35,31 @@ census_shp <- get_acs(
 states <- census_shp %>%
   select(name)
 
-states_turbines <- st_intersection(states, turbines)
-
-turbine_summary <- states_turbines %>%
+turbine_summary <- turbines %>%
   st_set_geometry(NULL) %>%
   filter(p_year != "-9999",
          t_cap != "-9999",
          p_year <= 2018) %>%
-  group_by(name) %>%
+  group_by(t_state) %>%
   summarize(t_count = n(),
-            t_cap = sum(t_cap))
+            t_cap = sum(t_cap)) %>%
+  mutate(name = state.name[match(t_state, state.abb)]) %>%
+  mutate(t_cap_mwh = t_cap/1000) %>%
+  na.omit()
 
-merged <- left_join(census_shp, turbine_summary, by = "name") %>%
+merged_counts <- left_join(census_shp, turbine_summary, by = "name") %>%
   mutate(t_count = ifelse(is.na(t_count), 0, t_count),
-         t_cap = ifelse(is.na(t_cap), 0, t_cap)) %>%
+         t_cap = ifelse(is.na(t_cap), 0, t_cap),
+         t_cap_mwh = ifelse(is.na(t_cap_mwh), 0, t_cap_mwh)) %>%
   select(everything(), geometry) %>%
-  mutate(t_cap = t_cap/1000)
-write_rds(merged, "data/merged/turbine_census.rds")
+  select(-t_state)
 
-#read_rds("data/merged/turbine_census.rds")
+state_areas <- read_csv("data/land/state_areas.csv") %>%
+  set_names(to_snake_case(colnames(.))) %>%
+  rename(name = state)
+
+merged <- left_join(merged_counts, state_areas, by = "name")
+write_rds(merged, "data/merged/turbine_census.rds")
 
 ggplot(merged) +
   geom_sf(aes(fill = t_count)) +
@@ -69,18 +75,36 @@ ggsave("source/build/t_map.png", plot = last_plot())
 ggplot(merged, aes(x = median_income, y = t_count)) +
   geom_point() +
   geom_smooth(se = FALSE) +
-  labs(x = "Turbine Count",
-       y = "Median Income") +
+  labs(x = "Median Income",
+       y = "Turbine Count") +
   theme_minimal()
 ggsave("source/build/inc_t.png", plot = last_plot())
+
+ggplot(merged, aes(x = log(median_income), y = log(t_count))) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  labs(x = "Median Income",
+       y = "Turbine Count") +
+  theme_minimal()
+ggsave("source/build/log_inc_t.png", plot = last_plot())
 
 ggplot(merged, aes(x = white, y = t_count)) +
   geom_point() +
   geom_smooth(se = FALSE) +
-  labs(x = "Turbine Count",
-       y = "Population - White") +
+  labs(x = "Population - White",
+       y = "Turbine Count") +
   theme_minimal()
 ggsave("source/build/white_t.png", plot = last_plot())
+
+merged %>%
+  mutate(ratio_t_turbine = t_count / square_miles_land_area) %>%
+  ggplot(aes(x = log(median_income), y = ratio_t_turbine)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  labs(x = "Median Income",
+       y = "Number of Turbines Over State Land Area") +
+  theme_minimal()
+ggsave("source/build/ratio_inc_t.png", plot = last_plot())
 
 # Hoen, B.D., Diffendorfer, J.E., Rand, J.T., Kramer, L.A., Garrity, C.P., and Hunt, H.E., 2018,
 # United States Wind Turbine Database (ver. 3.0, April 2020): U.S. Geological Survey, American Wind Energy Association,
