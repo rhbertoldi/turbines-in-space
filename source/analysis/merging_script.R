@@ -78,7 +78,7 @@ ggplot(merged, aes(x = white, y = t_count)) +
   geom_point() +
   geom_smooth(se = FALSE) +
   labs(x = "Turbine Count",
-       y = "Median Income") +
+       y = "Population - White") +
   theme_minimal()
 ggsave("source/build/white_t.png", plot = last_plot())
 
