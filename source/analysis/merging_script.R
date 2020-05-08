@@ -52,60 +52,47 @@ merged_counts <- left_join(census_shp, turbine_summary, by = "name") %>%
          t_cap = ifelse(is.na(t_cap), 0, t_cap),
          t_cap_mwh = ifelse(is.na(t_cap_mwh), 0, t_cap_mwh)) %>%
   select(everything(), geometry) %>%
-  select(-t_state)
+  select(-t_state) %>%
+  filter(name != "Alaska",
+         name != "Hawaii")
 
 state_areas <- read_csv("data/land/state_areas.csv") %>%
   set_names(to_snake_case(colnames(.))) %>%
   rename(name = state)
 
-merged <- left_join(merged_counts, state_areas, by = "name")
-write_rds(merged, "data/merged/turbine_census.rds")
+wind <- read_csv("data/wind/wtk_site_metadata.csv") %>%
+  set_names(to_snake_case(colnames(.))) %>%
+  filter(power_curve != "offshore") %>%
+  group_by(state) %>%
+  summarise(ave_wind_speed = mean(wind_speed),
+            ave_cap_factor = mean(capacity_factor)) %>%
+  filter(state %in% state.name) %>%
+  rename("name" = "state")
 
-ggplot(merged) +
-  geom_sf(aes(fill = t_count)) +
-  coord_sf(xlim = c(-175, -65)) +
-  theme(legend.position = "none",
-        line = element_blank(),
-        rect = element_blank(),
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        panel.grid.major = element_line(colour = "transparent"))
-ggsave("source/build/t_map.png", plot = last_plot())
+generation <- read_csv("data/wind/net_generation_for_wind.csv") %>%
+  filter(str_detect(description, "all sectors")) %>%
+  separate(description, sep = " :", into = c("name", "temp")) %>%
+  select(-temp) %>%
+  filter(name %in% state.name) %>%
+  filter(name != "Alaska",
+         name != "Hawaii") %>%
+  select(name, net_generation) %>%
+  mutate(net_generation = ifelse(net_generation == "--", 0, net_generation)) %>%
+  mutate(net_generation = as.numeric(net_generation))
 
-ggplot(merged, aes(x = median_income, y = t_count)) +
-  geom_point() +
-  geom_smooth(se = FALSE) +
-  labs(x = "Median Income",
-       y = "Turbine Count") +
-  theme_minimal()
-ggsave("source/build/inc_t.png", plot = last_plot())
+temp_merge <- plyr::join_all(list(state_areas, wind, generation),
+                 by = "name", type = "left") %>%
+  filter(name != "Alaska",
+         name != "Hawaii")
+final_merge <- left_join(merged_counts, temp_merge, by = "name")
+write_rds(final_merge, "data/merged/final_merge.rds")
 
-ggplot(merged, aes(x = log(median_income), y = log(t_count))) +
-  geom_point() +
-  geom_smooth(se = FALSE) +
-  labs(x = "Median Income",
-       y = "Turbine Count") +
-  theme_minimal()
-ggsave("source/build/log_inc_t.png", plot = last_plot())
+# basic OLS
+reg_vars <- final_merge %>%
+  st_set_geometry(NULL) %>%
+  select(-c(name, t_count)) %>%
+  names() %>%
+  paste(collapse = " + ")
 
-ggplot(merged, aes(x = white, y = t_count)) +
-  geom_point() +
-  geom_smooth(se = FALSE) +
-  labs(x = "Population - White",
-       y = "Turbine Count") +
-  theme_minimal()
-ggsave("source/build/white_t.png", plot = last_plot())
+summary(lm(as.formula(paste0("t_count ~ ", reg_vars)), data = final_merge))
 
-merged %>%
-  mutate(ratio_t_turbine = t_count / square_miles_land_area) %>%
-  ggplot(aes(x = log(median_income), y = ratio_t_turbine)) +
-  geom_point() +
-  geom_smooth(se = FALSE) +
-  labs(x = "Median Income",
-       y = "Number of Turbines Over State Land Area") +
-  theme_minimal()
-ggsave("source/build/ratio_inc_t.png", plot = last_plot())
-
-# Hoen, B.D., Diffendorfer, J.E., Rand, J.T., Kramer, L.A., Garrity, C.P., and Hunt, H.E., 2018,
-# United States Wind Turbine Database (ver. 3.0, April 2020): U.S. Geological Survey, American Wind Energy Association,
-# and Lawrence Berkeley National Laboratory data release, https://doi.org/10.5066/F7TX3DN0.
