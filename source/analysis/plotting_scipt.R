@@ -3,7 +3,8 @@ library(sf)
 rm(list = ls())
 setwd("C:/Users/User02/Desktop/Harris/spatial_reg/turbines-in-space")
 
-merged <- read_rds("data/merged/final_merge.rds")
+merged <- read_rds("data/merged/final_merge.rds") %>%
+  st_transform(2163)
 
 ggplot(merged) +
   geom_sf(aes(fill = t_count)) +
