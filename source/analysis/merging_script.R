@@ -86,13 +86,3 @@ temp_merge <- plyr::join_all(list(state_areas, wind, generation),
          name != "Hawaii")
 final_merge <- left_join(merged_counts, temp_merge, by = "name")
 write_rds(final_merge, "data/merged/final_merge.rds")
-
-# basic OLS
-reg_vars <- final_merge %>%
-  st_set_geometry(NULL) %>%
-  select(-c(name, t_count)) %>%
-  names() %>%
-  paste(collapse = " + ")
-
-summary(lm(as.formula(paste0("t_count ~ ", reg_vars)), data = final_merge))
-
