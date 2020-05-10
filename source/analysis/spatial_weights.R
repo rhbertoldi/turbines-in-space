@@ -27,13 +27,12 @@ hist(card(neighbors_queen),
 reg_vars <- merged %>%
   st_set_geometry(NULL) %>%
   select(
-    -c(name, t_count, t_cap, t_cap_mwh, net_generation, ave_cap_factor)
+    -c(name, t_count)
     ) %>%
   names() %>%
   paste(collapse = " + ")
 
 reg_ols <- lm(as.formula(paste0("t_count ~ ", reg_vars)), data = merged)
+summary(reg_ols)
 lm.morantest(reg_ols, list_queen)
 lm.LMtests(reg_ols, list_queen, test = "all")
-
-summary(reg_ols)

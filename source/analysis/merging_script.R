@@ -38,19 +38,13 @@ states <- census_shp %>%
 turbine_summary <- turbines %>%
   st_set_geometry(NULL) %>%
   filter(p_year != "-9999",
-         t_cap != "-9999",
          p_year <= 2018) %>%
   group_by(t_state) %>%
-  summarize(t_count = n(),
-            t_cap = sum(t_cap)) %>%
-  mutate(name = state.name[match(t_state, state.abb)]) %>%
-  mutate(t_cap_mwh = t_cap/1000) %>%
-  na.omit()
+  summarize(t_count = n()) %>%
+  mutate(name = state.name[match(t_state, state.abb)])
 
 merged_counts <- left_join(census_shp, turbine_summary, by = "name") %>%
-  mutate(t_count = ifelse(is.na(t_count), 0, t_count),
-         t_cap = ifelse(is.na(t_cap), 0, t_cap),
-         t_cap_mwh = ifelse(is.na(t_cap_mwh), 0, t_cap_mwh)) %>%
+  mutate(t_count = ifelse(is.na(t_count), 0, t_count)) %>%
   select(everything(), geometry) %>%
   select(-t_state) %>%
   filter(name != "Alaska",
@@ -64,23 +58,11 @@ wind <- read_csv("data/wind/wtk_site_metadata.csv") %>%
   set_names(to_snake_case(colnames(.))) %>%
   filter(power_curve != "offshore") %>%
   group_by(state) %>%
-  summarise(ave_wind_speed = mean(wind_speed),
-            ave_cap_factor = mean(capacity_factor)) %>%
+  summarise(ave_wind_speed = mean(wind_speed)) %>%
   filter(state %in% state.name) %>%
   rename("name" = "state")
 
-generation <- read_csv("data/wind/net_generation_for_wind.csv") %>%
-  filter(str_detect(description, "all sectors")) %>%
-  separate(description, sep = " :", into = c("name", "temp")) %>%
-  select(-temp) %>%
-  filter(name %in% state.name) %>%
-  filter(name != "Alaska",
-         name != "Hawaii") %>%
-  select(name, net_generation) %>%
-  mutate(net_generation = ifelse(net_generation == "--", 0, net_generation)) %>%
-  mutate(net_generation = as.numeric(net_generation))
-
-temp_merge <- plyr::join_all(list(state_areas, wind, generation),
+temp_merge <- left_join(state_areas, wind,
                  by = "name", type = "left") %>%
   filter(name != "Alaska",
          name != "Hawaii")
