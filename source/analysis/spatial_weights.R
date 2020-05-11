@@ -27,7 +27,7 @@ hist(card(neighbors_queen),
 reg_vars <- merged %>%
   st_set_geometry(NULL) %>%
   select(
-    -c(name, t_count)
+    -c(name, t_count, amer_ind, asian, black, hisp, na_pi, white)
     ) %>%
   names() %>%
   paste(collapse = " + ")

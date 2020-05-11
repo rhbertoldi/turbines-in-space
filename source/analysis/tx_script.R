@@ -101,9 +101,8 @@ reg_vars <- merged_tx %>%
   names() %>%
   paste(collapse = " + ")
 
-reg_glm <- glm(as.formula(paste0("t_count ~ ", reg_vars)),
-            data = merged_tx,
-            family = "poisson")
+reg_glm <- lm(as.formula(paste0("t_count ~ ", reg_vars)),
+            data = merged_tx)
 summary(reg_glm)
 
 coords <- st_centroid(st_geometry(merged_tx))
@@ -117,5 +116,4 @@ hist(card(neighbors_queen),
      breaks = seq(-0.5, 9.5, by = 1))
 
 lm.morantest(reg_glm, list_queen)
-lm.LMtests(reg_ols, list_queen, test = "all")
-
+lm.LMtests(reg_glm, list_queen, test = "all")

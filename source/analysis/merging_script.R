@@ -62,9 +62,16 @@ wind <- read_csv("data/wind/wtk_site_metadata.csv") %>%
   filter(state %in% state.name) %>%
   rename("name" = "state")
 
-temp_merge <- left_join(state_areas, wind,
-                 by = "name", type = "left") %>%
+elevation <- read_csv("data/land/elevation.csv") %>%
+  rename(name = State) %>%
+  filter(name %in% state.name)
+
+temp_merge <- plyr::join_all(list(state_areas,
+                    wind,
+                    elevation),
+               by = "name", type = "left") %>%
   filter(name != "Alaska",
          name != "Hawaii")
+
 final_merge <- left_join(merged_counts, temp_merge, by = "name")
 write_rds(final_merge, "data/merged/final_merge.rds")

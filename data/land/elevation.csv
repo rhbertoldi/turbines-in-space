@@ -1,0 +1,52 @@
+State,mean_elev,max_elev,min_elev
+Alabama ,500,"2,405",0
+Alaska ,"1,900","20,320",0
+Arizona ,"4,100","12,633",70
+Arkansas ,650,"2,753",55
+California ,"2,900","14,494",-282
+Colorado ,"6,800","14,433","3,350"
+Connecticut ,500,"2,380",0
+Delaware ,60,448,0
+D.C.,150,410,1
+Florida ,100,345,0
+Georgia ,600,"4,784",0
+Hawaii ,"3,030","13,796",0
+Idaho ,"5,000","12,662",710
+Illinois ,600,"1,235",279
+Indiana ,700,"1,257",320
+Iowa ,"1,100","1,670",480
+Kansas ,"2,000","4,039",679
+Kentucky ,750,"4,139",257
+Louisiana ,100,535,-8
+Maine ,600,"5,267",0
+Maryland ,350,"3,360",0
+Massachusetts ,500,"3,487",0
+Michigan ,900,"1,979",572
+Minnesota ,"1,200","2,301",600
+Mississippi ,300,806,0
+Missouri ,800,"1,772",230
+Montana ,"3,400","12,799","1,800"
+Nebraska ,"2,600","5,424",840
+Nevada ,"5,500","13,140",479
+New Hampshire ,"1,000","6,288",0
+New Jersey ,250,"1,803",0
+New Mexico ,"5,700","13,161","2,842"
+New York ,"1,000","5,344",0
+North Carolina ,700,"6,684",0
+North Dakota ,"1,900","3,506",750
+Ohio ,850,"1,549",455
+Oklahoma ,"1,300","4,973",289
+Oregon ,"3,300","11,239",0
+Pennsylvania ,"1,100","3,213",0
+Rhode Island ,200,812,0
+South Carolina ,350,"3,560",0
+South Dakota ,"2,200","7,242",966
+Tennessee ,900,"6,643",178
+Texas ,"1,700","8,749",0
+Utah ,"6,100","13,528","2,000"
+Vermont ,"1,000","4,393",95
+Virginia ,950,"5,729",0
+Washington ,"1,700","14,410",0
+West Virginia ,"1,500","4,861",240
+Wisconsin ,"1,050","1,951",579
+Wyoming ,"6,700","13,804","3,099"
