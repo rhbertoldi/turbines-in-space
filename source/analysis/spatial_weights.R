@@ -5,7 +5,8 @@ rm(list = ls())
 setwd("C:/Users/User02/Desktop/Harris/spatial_reg/turbines-in-space")
 
 merged <- read_rds("data/merged/final_merge.rds") %>%
-  st_transform(2163)
+  st_transform(2163) %>%
+  mutate(median_income2 = median_income*median_income)
 
 # kNN
 coords <- st_centroid(st_geometry(merged))
@@ -36,3 +37,6 @@ reg_ols <- lm(as.formula(paste0("t_count ~ ", reg_vars)), data = merged)
 summary(reg_ols)
 lm.morantest(reg_ols, list_queen)
 lm.LMtests(reg_ols, list_queen, test = "all")
+
+lm.morantest(reg_ols, nb2listw(knn2nb(neighbors_knn)))
+lm.LMtests(reg_ols, nb2listw(knn2nb(neighbors_knn)), test = "all")

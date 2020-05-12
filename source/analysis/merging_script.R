@@ -9,7 +9,6 @@ setwd("C:/Users/User02/Desktop/Harris/spatial_reg/turbines-in-space")
 turbines <- read_sf(
   "C:/Users/User02/Desktop/Harris/spatial_reg/final_project/turbines/uswtdb_v3_0_20200417.shp")
 
-census_api_key("375b79c384981482079e44ee2ac6f45f8f2df381")
 v18 <- load_variables(2018, "acs5", cache = TRUE)
 
 vars <- c(
