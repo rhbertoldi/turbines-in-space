@@ -78,7 +78,8 @@ temp_merge <- plyr::join_all(list(elevation,
 
 merged_tx <- left_join(census_shp_tx, temp_merge, by = "t_county") %>%
   mutate(t_count = ifelse(is.na(t_count), 0, t_count)) %>%
-  st_transform(2163)
+  st_transform(2163) %>%
+  mutate(count_dummy = ifelse(t_count == 0, 0, 1))
 write_rds(merged_tx, "data/merged/final_merge_tx.rds")
 
 merged_tx <- read_rds("data/merged/final_merge_tx.rds")
