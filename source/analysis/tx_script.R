@@ -11,8 +11,6 @@ turbines <- read_sf(
   "C:/Users/User02/Desktop/Harris/spatial_reg/final_project/turbines/uswtdb_v3_0_20200417.shp") %>%
   filter(t_state == "TX")
 
-census_api_key("375b79c384981482079e44ee2ac6f45f8f2df381")
-
 vars <- c(
   median_income = "B19013_001",
   white = "B02001_002",
@@ -82,6 +80,8 @@ merged_tx <- left_join(census_shp_tx, temp_merge, by = "t_county") %>%
   mutate(t_count = ifelse(is.na(t_count), 0, t_count)) %>%
   st_transform(2163)
 write_rds(merged_tx, "data/merged/final_merge_tx.rds")
+
+merged_tx <- read_rds("data/merged/final_merge_tx.rds")
 
 ggplot(merged_tx) +
   geom_sf(aes(fill = t_count)) +
