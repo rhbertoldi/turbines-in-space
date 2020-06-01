@@ -1,6 +1,7 @@
 library(tidyverse)
 library(sf)
 library(spdep)
+library(spatialreg)
 rm(list = ls())
 setwd("C:/Users/User02/Desktop/Harris/spatial_reg/turbines-in-space")
 
@@ -9,7 +10,7 @@ merged <- read_rds("data/merged/final_merge.rds") %>%
   mutate(median_income2 = median_income*median_income)
 
 # kNN
-coords <- st_centroid(st_geometry(merged))
+coords <- st_centroid(st_geometry(merged), of_largest_polygon = TRUE)
 neighbors_knn <- knearneigh(coords, k=4)
 plot(st_geometry(merged), border='grey')
 plot(knn2nb(neighbors_knn), coords, add=TRUE)
@@ -40,3 +41,13 @@ lm.LMtests(reg_ols, list_queen, test = "all")
 
 lm.morantest(reg_ols, nb2listw(knn2nb(neighbors_knn)))
 lm.LMtests(reg_ols, nb2listw(knn2nb(neighbors_knn)), test = "all")
+
+shapiro.test(merged$t_count)
+# normality
+bptest(reg_ols)
+# fail to reject the null of homoskedasticity
+vif(reg_ols)
+# how much the other regressors can explain the rest of the regressors
+# variable is correlated with the others?
+
+
